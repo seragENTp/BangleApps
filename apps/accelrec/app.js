@@ -2,27 +2,25 @@ var acc;
 var HZ = 100;
 var SAMPLES = 2*HZ; // 2 seconds
 var SCALE = 5000;
-var THRESH = 1.01;
+//var THRESH = 1.01;
 var accelx = new Int16Array(SAMPLES);
 var accely = new Int16Array(SAMPLES); // North
 var accelz = new Int16Array(SAMPLES); // Into clock face
 var accelIdx = 0;
 var lastAccel = undefined;
 function accelHandlerTrigger(a) {"ram"
-  if (a.mag*2>THRESH) { // *2 because 8g mode
     tStart = getTime();
     g.drawString("Recording",g.getWidth()/2,g.getHeight()/2,1);
     Bangle.removeListener('accel',accelHandlerTrigger);
     Bangle.on('accel',accelHandlerRecord);
     if (lastAccel) accelHandlerRecord(lastAccel);
-    accelHandlerRecord(a);
-  }
-  lastAccel = a;
+    accelHandlerRecord(a);  
+    lastAccel = a;
 }
 function accelHandlerRecord(a) {"ram"
   var i = accelIdx++;
   accelx[i] = a.x*SCALE*2;
-  accely[i] = -a.y*SCALE*2;
+  accely[i] = a.y*SCALE*2;
   accelz[i] = a.z*SCALE*2;
   if (accelIdx>=SAMPLES) recordStop();
 }
@@ -31,7 +29,7 @@ function recordStart() {"ram"
   accelIdx = 0;
   lastAccel = undefined;
   Bangle.accelWr(0x1B,0x03 | 0x40); // 100hz output, ODR/2 filter
-  Bangle.accelWr(0x18,0b11110100); // +-8g
+  //Bangle.accelWr(0x18,0b11110100); // +-8g
   Bangle.setPollInterval(10); // 100hz input
   setTimeout(function() {
     Bangle.on('accel',accelHandlerTrigger);
@@ -45,7 +43,7 @@ function recordStop() {"ram"
   console.log("Length:",getTime()-tStart);
   Bangle.setPollInterval(80); // default poll interval
   Bangle.accelWr(0x1B,0x0); // default 12.5hz output
-  Bangle.accelWr(0x18,0b11101100); // +-4g
+  //Bangle.accelWr(0x18,0b11101100); // +-4g
   Bangle.removeListener('accel',accelHandlerRecord);
   E.showMessage("Finished");
   showData();
